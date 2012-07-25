@@ -10,6 +10,7 @@ __date__ ="$23-Jul-2012 21:43:00$"
 
 from .exceptions import FieldException, InvalidException, NotDefinedException
 from decimal import Decimal
+import datetime
 
 class Field(object): 
     type = None
@@ -52,7 +53,7 @@ class Field(object):
                 if not valid:
                     raise InvalidException(msg)
         elif self.required:
-            raise NotDefinedException("Key {0} is not defined".format(self.field_name))
+            raise NotDefinedException("Key {0} is not defined".format(self._field_name))
         return True
     
     def transform(self, value=None):
@@ -62,8 +63,8 @@ class Field(object):
             raise ValueError(*e.args)
         
     def set_field_name(self, name):
-        if self.field_name is None:
-            self.field_name = name
+        if self._field_name is None:
+            self._field_name = name
 
 class IntegerField(Field):
     type=int

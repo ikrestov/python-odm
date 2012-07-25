@@ -115,3 +115,5 @@ class Model(object):
     
     def __contains__(self, key):
         return key in self.data
+
+Manager.model_base_class = Model

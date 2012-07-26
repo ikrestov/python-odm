@@ -13,6 +13,10 @@ from decimal import Decimal
 import datetime
 
 class Field(object): 
+    """
+    Base Field class, contains base logic for type conversion and validation
+    Override attribute *Field.type* to type (callable object which transforms passed argument into it's type) in **child classes**.
+    """
     type = None
     
     def __new__(cls, *args, **kwargs):
@@ -37,6 +41,9 @@ class Field(object):
         
     @classmethod
     def createByType(cls, type, *args, **kwargs):
+        """
+        Shortchut for creating custom Field based on type.
+        """
         if not hasattr(type, '__call__'):
             raise FieldException("Type {0} is not callable".format(type))
         try:
@@ -46,6 +53,9 @@ class Field(object):
         return type(name, (cls,), dict(type=type))()
         
     def validate(self, value=None):
+        """
+        Function performs type conversion and validation (if specified) on passed argument.
+        """
         if value is not None:
             value = self.transform(value)
             if self.validate_function:
@@ -57,28 +67,40 @@ class Field(object):
         return True
     
     def transform(self, value=None):
+        """
+        Performs Python type conversion, validation
+        """
         try:
             return self._setter(value)
         except Exception as e:
             raise ValueError(*e.args)
         
     def set_field_name(self, name):
+        """
+        Setter function to set *Field*'s name.
+        Called from Model's **Metaclass.__new__**.
+        """
         if self._field_name is None:
             self._field_name = name
 
 class IntegerField(Field):
+    """Base IntegerField"""
     type=int
     
 class FloatField(Field):
+    """Base FloatField"""
     type=float
 
 class DecimalField(Field):
+    """Base DecimalField"""
     type=Decimal
        
 class StringField(Field):
+    """Base StringField"""
     type=str
 
 class DatetimeField(Field):
+    """Base DatetimeField"""
     type=datetime.datetime
     
     def _setter(self, value):
@@ -86,8 +108,10 @@ class DatetimeField(Field):
         return value
     
 class DateField(DatetimeField):
+    """Base DateField"""
     type=datetime.date
         
 class TimeField(DatetimeField):
+    """Base TimeField"""
     type=datetime.time
     

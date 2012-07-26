@@ -9,11 +9,19 @@ from .manager import Manager
 import copy
 
 class ModelMeta(object):
+    """
+    Base class for Model behaviour configuration
+    """
     lazy_validation = False
     strict = False
     pk_name = 'id'
     
 class ModelMetaClass(type):
+    """
+    Metaclass for class Model.
+    Creates field list, sets name to field instances,
+    configures Manager instance (sets Model class as attribute)
+    """
     def __new__(cls, name, bases, attrs):
         if 'Meta' in attrs: attrs['Meta'] = type('Meta', (attrs['Meta'], ModelMeta), {})
         else: attrs['Meta'] = ModelMeta
@@ -45,16 +53,27 @@ class ModelMetaClass(type):
         return clsObject
             
 class Model(object):
+    """
+    Base class for your Models.
+    Usage:
+        class MyModel(Model)
+            objects = MyManager()
+            field = IntegerField()
+            
+            def save(self, *args):
+                # Your save logic
+                
+        mytest = MyModel()
+        mytest['data'] = 123
+        mytest['field'] = 'wefwef' # Raises exception
+        print(mytest.model_to_dict())
+    """
     __metaclass__ = ModelMetaClass
     
     Invalid = InvalidException
     NotDefined = NotDefinedException
     
     objects = Manager()
-    #class ModelManager(Manager):
-    #    pass
-    
-    #objects = ModelManager()
 
     def __init__(self, data=None):
         if data is None:
@@ -64,18 +83,31 @@ class Model(object):
                 
     @property
     def pk(self):
+        """
+        Returns Primary Key identified by **Meta.pk_name**
+        """
         return self.data.get(self.Meta.pk_name, None)
         
     def validate_object(self):
+        """
+        Validates object's existing fields.
+        """
         for name, field in self._fields.iteritems():
             field.validate(self.data.get(name))
             
     def validate_fields(self):
+        """
+        Check for existance of fields for each key and raise exception if *key* is not in *fields*.
+        """
         for key in self.data.iterkeys():
             if key not in self._fields:
                 raise self.Invalid("Model {0} is strict and key {1} is not defined".format(self.__class__.__name__, key))
         
     def model_to_dict(self):
+        """
+        Validates model and returns dictionary of data.
+        Should be used for *save()* method implementation.
+        """
         if self.Meta.strict:
             self.validate_fields()
         self.validate_object()
@@ -83,6 +115,10 @@ class Model(object):
     
     @classmethod
     def model_from_dict(cls, data):
+        """
+        *Class* method for validating dictionary and loading it into new Model instance.
+        Raises validation exceptions.
+        """
         inst = cls()
         inst.load(data)
         if inst.Meta.strict:
@@ -91,6 +127,10 @@ class Model(object):
         return inst
         
     def load(self, data):
+        """
+        Load and validate data from passed dictionary.
+        **Warning!!! Deletes old data!**
+        """
         ## TODO = Refactoring/ Optimization
         if self.Meta.strict:
             self.data = copy.deepcopy(self.__class__._default)
@@ -101,6 +141,10 @@ class Model(object):
             self.data = copy.deepcopy(data)
         
     def save(self):
+        """
+        Function for object *save* logic.
+        **NotImplemented**
+        """
         raise NotImplementedError()
     
     def __len__(self):
@@ -129,5 +173,3 @@ class Model(object):
     
     def __contains__(self, key):
         return key in self.data
-
-Manager.model_base_class = Model

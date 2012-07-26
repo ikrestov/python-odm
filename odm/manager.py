@@ -36,14 +36,12 @@ class Manager(object):
         Returns *Iterable*
         **Optional**
         """
-        raise NotImplementedError() # Should return iterable
+        raise NotImplementedError()
     
     def fetch(self):
         """
         Loads a list of objects, returns *Iterable*.
         Each value is instance of class *Model*.
         """
-        raise NotImplementedError() # Should return iterable
+        raise NotImplementedError()
 
-# Prevents recursive import
-#from .models import Model

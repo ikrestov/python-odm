@@ -56,9 +56,11 @@ class Model(object):
     
     #objects = ModelManager()
 
-    def __init__(self, data):
-        self.data = copy.deepcopy(self.__class__._default)
-        self.data.update(data)
+    def __init__(self, data=None):
+        if data is None:
+            self.data = copy.deepcopy(self.__class__._default)
+        else:
+            self.data = data
                 
     @property
     def pk(self):

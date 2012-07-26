@@ -4,8 +4,6 @@ __author__="Igor Krestov"
 __date__ ="$24-Jul-2012 23:12:41$"
 
 class Manager(object):
-    model_base_class=None
-
     """
     **Abstract** object Manager class, set as a model's attribute (default *objects*)
     """
@@ -16,8 +14,8 @@ class Manager(object):
         """
         Functions checks passed *model_class*, and sets it *private* attribute.
         """
-        if model_class is not None and not issubclass(model_class, self.model_base_class):
-            raise Exception('Passed model class', model_class, 'is not subclass of base Model')
+        if model_class is not None and not hasattr(model_class, '__call__'):
+            raise Exception('Passed model class', model_class, 'is not callable')
         self._model_class = model_class
         
     def create(self):
@@ -47,3 +45,5 @@ class Manager(object):
         """
         raise NotImplementedError() # Should return iterable
 
+# Prevents recursive import
+#from .models import Model

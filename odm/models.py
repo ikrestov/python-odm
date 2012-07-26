@@ -11,8 +11,38 @@ import copy
 class ModelMeta(object):
     lazy_validation = False
     strict = False
+    pk_name = 'id'
+    
+class ModelMetaClass(type):
+    def __new__(cls, name, bases, attrs):
+        if 'Meta' in attrs: attrs['Meta'] = type('Meta', (attrs['Meta'], ModelMeta), {})
+        else: attrs['Meta'] = ModelMeta
+        _default = {}
+        _fields = {}
+        for name, obj in attrs.iteritems():
+            obj.set_field_name(name)
+            if obj.default is not None:
+                _default[name] = obj.default
+            _fields[name] = obj
+        attrs['_fields'] = _fields
+        attrs['_default'] = _default
+        clsObject = super(ModelMetaClass, cls).__new__(cls, name, bases, attrs)
+        try: pass_to_manager = getattr(attrs['Meta'], 'pass_to_manager')
+        except AttributeError: pass_to_manager = ()
+        for obj in attrs.itervalues():
+            if isinstance(obj, Manager):
+                obj.set_model_class(clsObject)
+                for name in pass_to_manager:
+                    try:
+                        setattr(obj, name, getattr(clsObject, name))
+                    except:
+                        pass
         
+        return clsObject
+            
 class Model(object):
+    __metaclass__ = ModelMetaClass
+    
     Invalid = InvalidException
     NotDefined = NotDefinedException
     
@@ -21,33 +51,15 @@ class Model(object):
     #    pass
     
     #objects = ModelManager()
-    
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, '_fields'):
-            cls._default = {}
-            cls._fields = {}
-            for name, obj in cls.__dict__.iteritems():
-                cls._attribute_hook(name, obj)
-        if hasattr(cls, 'Meta'):
-            cls.Meta = type('Meta', (cls.Meta, ModelMeta), {})
-        else:
-            cls.Meta = ModelMeta
-        return super(Model, cls).__new__(cls, *args, **kwargs)
-         
-    def __init__(self, **kwargs):
+
+    def __init__(self, data):
         self.data = copy.deepcopy(self.__class__._default)
-        self.data.update(kwargs)
+        self.data.update(data)
+                
+    @property
+    def pk(self):
+        return self.data.get(self.Meta.pk_name, None)
         
-    @classmethod
-    def _attribute_hook(cls, name, obj):
-        if isinstance(obj, Field):
-            obj.set_field_name(name)
-            if obj.default is not None:
-                cls._default[name] = obj.default
-            cls._fields[name] = obj
-        if isinstance(obj, Manager):
-            obj.set_model_class(cls)
-                    
     def validate_object(self):
         for name, field in self._fields.iteritems():
             field.validate(self.data.get(name))
@@ -85,10 +97,6 @@ class Model(object):
     def save(self):
         raise NotImplementedError()
     
-    def __setattr__(self, name, value):
-        
-        super(Model, self).__setattr__(name, value)
-        
     def __len__(self):
         return len(self.data)
     

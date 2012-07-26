@@ -46,4 +46,4 @@ class Manager(object):
         raise NotImplementedError() # Should return iterable
 
 # Prevents recursive import
-from .models import Model
+#from .models import Model

@@ -17,16 +17,20 @@ class ModelMetaClass(type):
     def __new__(cls, name, bases, attrs):
         if 'Meta' in attrs: attrs['Meta'] = type('Meta', (attrs['Meta'], ModelMeta), {})
         else: attrs['Meta'] = ModelMeta
+        
         _default = {}
         _fields = {}
         for name, obj in attrs.iteritems():
-            obj.set_field_name(name)
-            if obj.default is not None:
-                _default[name] = obj.default
-            _fields[name] = obj
+            if isinstance(obj, Field):
+                obj.set_field_name(name)
+                if obj.default is not None:
+                    _default[name] = obj.default
+                _fields[name] = obj
         attrs['_fields'] = _fields
         attrs['_default'] = _default
+        
         clsObject = super(ModelMetaClass, cls).__new__(cls, name, bases, attrs)
+        
         try: pass_to_manager = getattr(attrs['Meta'], 'pass_to_manager')
         except AttributeError: pass_to_manager = ()
         for obj in attrs.itervalues():

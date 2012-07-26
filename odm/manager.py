@@ -14,8 +14,8 @@ class Manager(object):
         """
         Functions checks passed *model_class*, and sets it *private* attribute.
         """
-        if model_class is not None and not issubclass(model_class, Model):
-            raise Exception('Passed model class', model_class, 'is not subclass of base Model')
+        #if not issubclass(model_class, Model):
+        #    raise Exception('Passed model class', model_class, 'is not subclass of base Model')
         self._model_class = model_class
         
     def create(self):

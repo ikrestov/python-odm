@@ -33,7 +33,7 @@ class Field(object):
         
     def __init__(self, required=False, validate=None, default=None, field_name=None):
         self.required = required
-        self._field_name = field_name
+        self.field_name = field_name
         self.default=default
         self.validate_function = validate if hasattr(validate, '__call__') else None
         if self.default is not None:
@@ -63,7 +63,7 @@ class Field(object):
                 if not valid:
                     raise InvalidException(msg)
         elif self.required:
-            raise NotDefinedException("Key {0} is not defined".format(self._field_name))
+            raise NotDefinedException("Key {0} is not defined".format(self.field_name))
         return True
     
     def transform(self, value=None):
@@ -75,7 +75,15 @@ class Field(object):
         except Exception as e:
             raise ValueError(*e.args)
         
-    def set_field_name(self, name):
+    @property
+    def field_name(self):
+        """
+        Getter for Field's name
+        """
+        return self._field_name
+    
+    @property.setter
+    def field_name(self, name):
         """
         Setter function to set *Field*'s name.
         Called from Model's **Metaclass.__new__**.

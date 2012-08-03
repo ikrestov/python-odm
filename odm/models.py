@@ -32,7 +32,7 @@ class ModelMetaClass(type):
         _managers = ModelMetaClass.collect_from_bases(bases, '_managers', {}, _copy=1)
         for name, obj in attrs.iteritems():
             if isinstance(obj, Field):
-                obj.set_field_name(name)
+                obj.field_name=name
                 if obj.default is not None:
                     _default[name] = obj.default
                 _fields[name] = obj

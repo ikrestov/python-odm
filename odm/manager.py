@@ -8,9 +8,17 @@ class Manager(object):
     **Abstract** object Manager class, set as a model's attribute (default *objects*)
     """
     def __init__(self, model_class=None):
-        self.set_model_class(model_class)
+        self.model_class=model_class
         
-    def set_model_class(self, model_class):
+    @property
+    def model_class(self):
+        """
+        Getter for Manager's Model Class
+        """
+        return self._model_class
+        
+    @property.setter
+    def model_class(self, model_class):
         """
         Functions checks passed *model_class*, and sets it *private* attribute.
         """
@@ -27,14 +35,6 @@ class Manager(object):
     def get(self):
         """
         Function fetches/ loads only **one** record, returns instance of class *Model*
-        """
-        raise NotImplementedError()
-    
-    def filter(self):
-        """
-        Theoretical function for filtering objects on application logic's level. 
-        Returns *Iterable*
-        **Optional**
         """
         raise NotImplementedError()
     

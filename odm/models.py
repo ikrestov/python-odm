@@ -23,34 +23,58 @@ class ModelMetaClass(type):
     configures Manager instance (sets Model class as attribute)
     """
     def __new__(cls, name, bases, attrs):
-        if 'Meta' in attrs: attrs['Meta'] = type('Meta', (attrs['Meta'], ModelMeta), {})
-        else: attrs['Meta'] = ModelMeta
+        ParentMeta = ModelMetaClass.collect_from_bases(bases, 'Meta', ModelMeta)
+        if 'Meta' in attrs: attrs['Meta'] = type('Meta', (ParentMeta,), attrs['Meta'].__dict__)
+        else: attrs['Meta'] = ParentMeta
         
-        _default = {}
-        _fields = {}
+        _default = ModelMetaClass.collect_from_bases(bases, '_default', {}, _copy=1)
+        _fields = ModelMetaClass.collect_from_bases(bases, '_fields', {}, _copy=1)
+        _managers = ModelMetaClass.collect_from_bases(bases, '_managers', {}, _copy=1)
         for name, obj in attrs.iteritems():
             if isinstance(obj, Field):
                 obj.set_field_name(name)
                 if obj.default is not None:
                     _default[name] = obj.default
                 _fields[name] = obj
+            if isinstance(obj, Manager):
+                _managers[name] = obj
         attrs['_fields'] = _fields
         attrs['_default'] = _default
-        
+        attrs['_managers'] = _managers
+        attrs.update(_managers)
         clsObject = super(ModelMetaClass, cls).__new__(cls, name, bases, attrs)
         
         try: pass_to_manager = getattr(attrs['Meta'], 'pass_to_manager')
         except AttributeError: pass_to_manager = ()
-        for obj in attrs.itervalues():
-            if isinstance(obj, Manager):
-                obj.set_model_class(clsObject)
-                for name in pass_to_manager:
-                    try:
-                        setattr(obj, name, getattr(clsObject, name))
-                    except:
-                        pass
+        
+        for manager in _managers.itervalues():
+            manager.model_class=clsObject
+            for name in pass_to_manager:
+                try:
+                    setattr(manager, name, getattr(clsObject, name))
+                except:
+                    pass
         
         return clsObject
+    
+    @staticmethod
+    def collect_from_bases(bases, attr, default=None, _copy=0):
+        attr_value = None
+        for base in reversed(bases):
+            try:
+                attr_value = getattr(base, attr)
+            except AttributeError:
+                pass
+        if attr_value is None:
+            return default
+        elif _copy > 0:
+            if _copy > 1:
+                return copy.deepcopy(attr_value)
+            else:
+                return copy.copy(attr_value)
+        else:
+            return attr_value
+            
             
 class Model(object):
     """
@@ -87,7 +111,14 @@ class Model(object):
         Returns Primary Key identified by **Meta.pk_name**
         """
         return self.data.get(self.Meta.pk_name, None)
-        
+       
+    @property.setter
+    def pk(self, value):
+        """
+        Sets Primary Key identified by **Meta.pk_name**
+        """
+        self.data[self.Meta.pk_name] = value
+    
     def validate_object(self):
         """
         Validates object's existing fields.
@@ -143,6 +174,13 @@ class Model(object):
     def save(self):
         """
         Function for object *save* logic.
+        **NotImplemented**
+        """
+        raise NotImplementedError()
+    
+    def delete(self):
+        """
+        Function for object *delete* logic.
         **NotImplemented**
         """
         raise NotImplementedError()

@@ -17,7 +17,7 @@ class Manager(object):
         """
         return self._model_class
         
-    @property.setter
+    @model_class.setter
     def model_class(self, model_class):
         """
         Functions checks passed *model_class*, and sets it *private* attribute.

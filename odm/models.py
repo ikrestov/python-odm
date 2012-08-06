@@ -112,7 +112,7 @@ class Model(object):
         """
         return self.data.get(self.Meta.pk_name, None)
        
-    @property.setter
+    @pk.setter
     def pk(self, value):
         """
         Sets Primary Key identified by **Meta.pk_name**

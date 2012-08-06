@@ -82,7 +82,7 @@ class Field(object):
         """
         return self._field_name
     
-    @property.setter
+    @field_name.setter
     def field_name(self, name):
         """
         Setter function to set *Field*'s name.

@@ -44,3 +44,34 @@ class ModelTestCase(unittest.TestCase):
         
     def test_manager_model(self):
         self.assertEqual(self.baseModelObj.objects.model_class, self.baseModelClass)
+        
+    def test_model_to_dict(self):
+        self.baseModelObj['int_field']=1
+        self.assertEqual(self.baseModelObj.model_to_dict()['int_field'], 1)
+        
+    def test_model_from_dict(self):
+        m = self.baseModelClass.model_from_dict({'int_field': 1})
+        self.assertEqual(m['int_field'], 1)
+        
+    def test_field_validation(self):
+        with self.assertRaises(ValueError):
+            self.baseModelObj['int_field']='string'
+            self.baseModelObj.model_to_dict()
+            
+    def test_model_strict(self):
+        class StrictModel(self.baseModelClass):
+            class Meta:
+                strict = True
+                
+        m = StrictModel()
+        with self.assertRaises(m.Invalid):
+            m['undefined_field']=True
+            
+    def test_model_required(self):
+        class RequiredModel(self.baseModelClass):
+            int_field = IntegerField(required=True)
+                
+        m = RequiredModel()
+        with self.assertRaises(m.NotDefined):
+            m.model_to_dict()
+        

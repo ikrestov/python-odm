@@ -7,7 +7,7 @@ import unittest
 from odm import Model, IntegerField
 
 class TestModel(Model):
-    int_field = IntegerField()
+    int_field = IntegerField(default=0)
     manager_send = 'THIS IS PASSED TO MANAGER'
 
     class Meta:
@@ -37,10 +37,10 @@ class ModelTestCase(unittest.TestCase):
     def test_manager_exists(self):
         self.assertTrue('objects' in self.baseModelObj._managers)
         
-    @unittest.skipIf('pass_to_manager' not in TestModel.Meta.__dict__)
+    @unittest.skipIf('pass_to_manager' not in TestModel.Meta.__dict__, "Meta.`pass_to_manager` is not set")
     def test_manager_pass(self):
         for attr in self.baseModelObj.Meta.pass_to_manager:
-            self.assertEqual(getattr(self.baseModelObj.objects, attr), getattr(self, attr))
+            self.assertEqual(getattr(self.baseModelObj.objects, attr), getattr(self.baseModelClass, attr))
         
     def test_manager_model(self):
         self.assertEqual(self.baseModelObj.objects.model_class, self.baseModelClass)

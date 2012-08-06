@@ -35,6 +35,8 @@ class ModelMetaClass(type):
                 obj.field_name=name
                 if obj.default is not None:
                     _default[name] = obj.default
+                elif name in _default:
+                   del _default[name]
                 _fields[name] = obj
             if isinstance(obj, Manager):
                 _managers[name] = obj

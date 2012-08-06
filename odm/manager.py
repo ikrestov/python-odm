@@ -8,6 +8,7 @@ class Manager(object):
     **Abstract** object Manager class, set as a model's attribute (default *objects*)
     """
     def __init__(self, model_class=None):
+        self._model_class=None
         self.model_class=model_class
         
     @property

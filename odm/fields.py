@@ -33,6 +33,7 @@ class Field(object):
         
     def __init__(self, required=False, validate=None, default=None, field_name=None):
         self.required = required
+        self._field_name = None
         self.field_name = field_name
         self.default=default
         self.validate_function = validate if hasattr(validate, '__call__') else None

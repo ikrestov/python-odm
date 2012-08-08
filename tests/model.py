@@ -70,7 +70,7 @@ class ModelTestCase(unittest.TestCase):
     def test_model_required(self):
         class RequiredModel(self.baseModelClass):
             int_field = IntegerField(required=True)
-                
+        
         m = RequiredModel()
         with self.assertRaises(m.NotDefined):
             m.model_to_dict()

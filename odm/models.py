@@ -7,6 +7,7 @@ from .exceptions import InvalidException, NotDefinedException
 from .fields import Field
 from .manager import Manager
 import copy
+import collections
 
 class ModelMeta(object):
     """
@@ -76,7 +77,7 @@ class ModelMetaClass(type):
             return attr_value
             
             
-class Model(object):
+class Model(collections.MutableMapping):
     """
     Base class for your Models.
     Usage:
@@ -104,6 +105,10 @@ class Model(object):
             self.data = copy.deepcopy(self.__class__._default)
         else:
             self.data = data
+            for name, val in self.__class__._default.iteritems():
+                if name not in self.data:
+                    self.data[name]=val
+                    
                 
     @property
     def pk(self):
@@ -207,7 +212,12 @@ class Model(object):
         del self.data[key]
 
     def __iter__(self):
+        return iter(self.data)
+    
+    def iteritems(self):
         return self.data.iteritems()
     
     def __contains__(self, key):
         return key in self.data
+
+

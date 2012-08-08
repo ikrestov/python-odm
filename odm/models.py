@@ -17,7 +17,7 @@ class ModelMeta(object):
     strict = False
     pk_name = 'id'
     
-class ModelMetaClass(type):
+class ModelMetaClass(collections.MutableMapping.__metaclass__):
     """
     Metaclass for class Model.
     Creates field list, sets name to field instances,

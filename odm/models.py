@@ -16,14 +16,16 @@ class ModelMeta(object):
     lazy_validation = False
     strict = False
     pk_name = 'id'
+    pass_to_manager = ()
     
+
 class ModelMetaClass(collections.MutableMapping.__metaclass__):
     """
     Metaclass for class Model.
     Creates field list, sets name to field instances,
     configures Manager instance (sets Model class as attribute)
     """
-    def __new__(cls, name, bases, attrs):
+    def __new__(cls, klasname, bases, attrs):
         ParentMeta = ModelMetaClass.collect_from_bases(bases, 'Meta', ModelMeta)
         if 'Meta' in attrs: attrs['Meta'] = type('Meta', (ParentMeta,), attrs['Meta'].__dict__)
         else: attrs['Meta'] = ParentMeta
@@ -45,20 +47,21 @@ class ModelMetaClass(collections.MutableMapping.__metaclass__):
         attrs['_default'] = _default
         attrs['_managers'] = _managers
         attrs.update(_managers)
-        clsObject = super(ModelMetaClass, cls).__new__(cls, name, bases, attrs)
+       
+        clsObject = super(ModelMetaClass, cls).__new__(cls, klasname, bases, attrs)
         
         try: pass_to_manager = getattr(attrs['Meta'], 'pass_to_manager')
         except AttributeError: pass_to_manager = ()
-        
+          
         for manager in _managers.itervalues():
             manager.model_class=clsObject
             for name in pass_to_manager:
                 try:
-                    setattr(manager, name, getattr(clsObject, name))
-                except:
+                    setattr(manager, name, getattr(cls, name))
+                except AttributeError:
                     pass
         
-        return clsObject
+        return clsObject 
     
     @staticmethod
     def collect_from_bases(bases, attr, default=None, _copy=0):
@@ -191,7 +194,14 @@ class Model(collections.MutableMapping):
         **NotImplemented**
         """
         raise NotImplementedError()
-    
+   
+    @classmethod
+    def set_attr(cls, name, value):
+        setattr(cls, name, value)
+        if name in cls.Meta.pass_to_manager:
+            for manager in cls._managers.itervalues():
+                setattr(manager, name, value)
+
     def __len__(self):
         return len(self.data)
     
@@ -221,5 +231,4 @@ class Model(collections.MutableMapping):
     
     def __contains__(self, key):
         return key in self.data
-
 

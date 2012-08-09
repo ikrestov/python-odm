@@ -26,6 +26,9 @@ class Manager(object):
         if model_class is not None and not hasattr(model_class, '__call__'):
             raise Exception('Passed model class', model_class, 'is not callable')
         self._model_class = model_class
+
+    def __getattr__(self, name):
+        return getattr(self._model_class, name)
         
     def create(self):
         """

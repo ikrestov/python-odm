@@ -152,7 +152,7 @@ class Model(collections.MutableMapping):
         if self.Meta.strict:
             self.validate_fields()
         self.validate_object()
-        return self.data
+        return self.raw()
     
     @classmethod
     def model_from_dict(cls, data):

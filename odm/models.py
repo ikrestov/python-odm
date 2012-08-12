@@ -162,9 +162,6 @@ class Model(collections.MutableMapping):
         """
         inst = cls()
         inst.load(data)
-        if inst.Meta.strict:
-            inst.validate_fields()
-        inst.validate_object()
         return inst
         
     def load(self, data):
@@ -173,14 +170,26 @@ class Model(collections.MutableMapping):
         **Warning!!! Deletes old data!**
         """
         ## TODO = Refactoring/ Optimization
-        if self.Meta.strict:
-            self.data = copy.deepcopy(self.__class__._default)
-            for key, value in data.iteritems():
-                if key in self._fields:
-                    self.data[key] = value
-        else:
-            self.data = copy.deepcopy(data)
-        
+        self.data = copy.copy(self.__class__._default)
+        for key, value in data.iteritems():
+            try:
+                field = self._fields[key]
+                if hasattr(field, 'validate'):
+                   field.validate(value)
+                if hasattr(field, 'transform'):
+                   self.data[key] = field.transform(copy.deepcopy(value))
+                else:
+                   self.data[key] = copy.deepcopy(value)
+            except KeyError:
+                if self.Meta.strict:
+                    raise self.Invalid("Model {0} is strict and key {1} is not defined".format(self.__class__.__name__, key))
+                else:
+                    self.data[key] = copy.deepcopy(value)
+    
+
+    def raw(self):
+        return copy.deepcopy(self.data)
+ 
     def save(self):
         """
         Function for object *save* logic.

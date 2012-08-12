@@ -52,7 +52,11 @@ class ModelTestCase(unittest.TestCase):
     def test_model_from_dict(self):
         m = self.baseModelClass.model_from_dict({'int_field': 1})
         self.assertEqual(m['int_field'], 1)
-        
+    
+    def test_model_from_dict_fail(self):
+        with self.assertRaises(ValueError):
+            self.baseModelClass.model_from_dict({'int_field': 'NOT STIRNG'})
+ 
     def test_field_validation(self):
         with self.assertRaises(ValueError):
             self.baseModelObj['int_field']='string'
@@ -66,6 +70,13 @@ class ModelTestCase(unittest.TestCase):
         m = StrictModel()
         with self.assertRaises(m.Invalid):
             m['undefined_field']=True
+
+    def test_model_strict_load_fail(self):
+        class StrictModel(self.baseModelClass):
+            class Meta:
+                strict = True
+        with self.assertRaises(StrictModel.Invalid):
+            StrictModel.model_from_dict({'field': 'STIRNG'})
             
     def test_model_required(self):
         class RequiredModel(self.baseModelClass):

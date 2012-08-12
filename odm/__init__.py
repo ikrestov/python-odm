@@ -9,4 +9,4 @@ from .fields import Field, IntegerField, FloatField, DecimalField, StringField
 from .models import Model
 from .manager import Manager
 
-__all__ = ['Model', 'Manager', 'FieldException', 'InvalidException', 'NotDefinedException', 'Field', 'IntegerField', 'FloatField', 'DecimalField', 'StringField']
+__all__ = ['Model', 'Manager', 'FieldException', 'InvalidException', 'NotDefinedException', 'Field', 'IntegerField', 'FloatField', 'DecimalField', 'StringField', 'DatetimeField', 'DateField', 'TimeField']

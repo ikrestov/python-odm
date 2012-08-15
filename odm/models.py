@@ -29,10 +29,12 @@ class ModelMetaClass(collections.MutableMapping.__metaclass__):
         ParentMeta = ModelMetaClass.collect_from_bases(bases, 'Meta', ModelMeta)
         if 'Meta' in attrs: attrs['Meta'] = type('Meta', (ParentMeta,), attrs['Meta'].__dict__)
         else: attrs['Meta'] = ParentMeta
-        
-        _default = ModelMetaClass.collect_from_bases(bases, '_default', {}, _copy=1)
-        _fields = ModelMetaClass.collect_from_bases(bases, '_fields', {}, _copy=1)
-        _managers = ModelMetaClass.collect_from_bases(bases, '_managers', {}, _copy=1)
+       
+
+        #TODO=Refactoring 
+        _default = ModelMetaClass.collect_from_bases(bases, '_default', {}, _copy=2)
+        _fields = ModelMetaClass.collect_from_bases(bases, '_fields', {}, _copy=2)
+        _managers = ModelMetaClass.collect_from_bases(bases, '_managers', {}, _copy=2)
         for name, obj in attrs.iteritems():
             if isinstance(obj, Field):
                 obj.field_name=name
@@ -64,7 +66,7 @@ class ModelMetaClass(collections.MutableMapping.__metaclass__):
         return clsObject 
     
     @staticmethod
-    def collect_from_bases(bases, attr, default=None, _copy=0):
+    def collect_from_bases(bases, attr, default=None, _copy=0, filter=None, call=None):
         attr_value = None
         for base in reversed(bases):
             try:
@@ -73,13 +75,16 @@ class ModelMetaClass(collections.MutableMapping.__metaclass__):
                 pass
         if attr_value is None:
             return default
-        elif _copy > 0:
-            if _copy > 1:
-                return copy.deepcopy(attr_value)
+        elif not hasattr(filter, '__call__') or filter(attr_value):
+            if _copy > 0:
+                if _copy > 1:
+                    attr_value = copy.deepcopy(attr_value)
+                else:
+                    attr_value = copy.copy(attr_value)
+            if hasattr(call, '__call__'):
+                return call(attr_value)
             else:
-                return copy.copy(attr_value)
-        else:
-            return attr_value
+                return attr_value
             
             
 class Model(collections.MutableMapping):

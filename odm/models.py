@@ -112,11 +112,14 @@ class Model(collections.MutableMapping):
 
     def __init__(self, data=None):
         if data is None:
-            self.data = copy.deepcopy(self.__class__._default)
+            self.data = {}
         else:
             self.data = data
-            for name, val in self.__class__._default.iteritems():
-                if name not in self.data:
+        for name, val in self.__class__._default.iteritems():
+            if name not in self.data:
+                if hasattr(val, '__call__'):
+                    self.data[name]=val()
+                else:
                     self.data[name]=val
                     
                 
